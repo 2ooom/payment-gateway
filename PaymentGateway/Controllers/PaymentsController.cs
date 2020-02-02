@@ -1,37 +1,44 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PaymentGateway.Acquiring;
 using PaymentGateway.Model;
 
 namespace PaymentGateway.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class PaymentsController : ControllerBase
     {
-        private readonly PaymentDbContext _context;
+        private readonly IPaymentDbContext _paymentDb;
+        private readonly IBankRegistry _banksRegistry;
 
-        public PaymentsController(PaymentDbContext context)
+        public PaymentsController(IPaymentDbContext paymentDb, IBankRegistry banksRegistry)
         {
-            _context = context;
+            _paymentDb = paymentDb;
+            _banksRegistry = banksRegistry;
         }
 
         // GET: api/Payments
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Payment>>> GetPayments()
         {
-            return await _context.Payments.ToListAsync();
+            var merchantId = GetMerchantId();
+            return await _paymentDb.Payments.Where(p => p.MerchantId == merchantId).ToListAsync();
         }
 
         // GET: api/Payments/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Payment>> GetPayment(long id)
         {
-            var payment = await _context.Payments.FindAsync(id);
+            var payment = await _paymentDb.Payments.FindAsync(id);
 
-            if (payment == null)
+            if (payment == null || payment.MerchantId != GetMerchantId())
             {
                 return NotFound();
             }
@@ -39,69 +46,26 @@ namespace PaymentGateway.Controllers
             return payment;
         }
 
-        // PUT: api/Payments/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
-        // more details see https://aka.ms/RazorPagesCRUD.
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutPayment(long id, Payment payment)
-        {
-            if (id != payment.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(payment).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PaymentExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Payments
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
-        // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost]
-        public async Task<ActionResult<Payment>> PostPayment(Payment payment)
+        public async Task<ActionResult<Payment>> PostPayment(PaymentRequest paymentRequest)
         {
-            _context.Payments.Add(payment);
-            await _context.SaveChangesAsync();
+            // TODO: Verify currency
+
+            var payment = new Payment
+            {
+                Amount = paymentRequest.Amount,
+                Currency = paymentRequest.Currency
+            };
+            _paymentDb.Payments.Add(payment);
+            await _paymentDb.SaveChangesAsync();
 
             return CreatedAtAction("GetPayment", new { id = payment.Id }, payment);
         }
 
-        // DELETE: api/Payments/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<Payment>> DeletePayment(long id)
+        private long GetMerchantId()
         {
-            var payment = await _context.Payments.FindAsync(id);
-            if (payment == null)
-            {
-                return NotFound();
-            }
-
-            _context.Payments.Remove(payment);
-            await _context.SaveChangesAsync();
-
-            return payment;
-        }
-
-        private bool PaymentExists(long id)
-        {
-            return _context.Payments.Any(e => e.Id == id);
+            var merchantId = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.Name).Value;
+            return long.Parse(merchantId);
         }
     }
 }
