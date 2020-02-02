@@ -10,5 +10,7 @@ namespace PaymentGateway.Model
         public string Name { get; set; }
 
         public string Url { get; set; }
+
+        public AcquirerType AcquirerType { get; set; }
     }
 }
