@@ -2,11 +2,8 @@
 
 namespace PaymentGateway.Model
 {
-    public class Merchant
+    public class MerchantCreationRequest
     {
-        [Key]
-        public long Id { get; set; }
-
         [Required]
         public string Name { get; set; }
 
@@ -15,10 +12,10 @@ namespace PaymentGateway.Model
         [Required]
         public string Login { get; set; }
 
-        public string HashedPassword { get; set; }
+        [Required]
+        public string Password { get; set; }
 
-        public string Salt { get; set; }
-
+        [Required]
         public AcquirerType AcquirerType { get; set; }
     }
 }

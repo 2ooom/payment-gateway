@@ -2,7 +2,7 @@
 
 namespace PaymentGateway.Model
 {
-    public class PaymentDbContext : DbContext
+    public class PaymentDbContext : DbContext, IPaymentDbContext
     {
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Merchant> Merchants { get; set; }
