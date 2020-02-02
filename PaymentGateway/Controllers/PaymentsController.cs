@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -47,19 +48,45 @@ namespace PaymentGateway.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Payment>> PostPayment(PaymentRequest paymentRequest)
+        public async Task<ActionResult<Payment>> PostPayment(PaymentRequest request)
         {
-            // TODO: Verify currency
-
+            var merchantId = GetMerchantId();
             var payment = new Payment
             {
-                Amount = paymentRequest.Amount,
-                Currency = paymentRequest.Currency
+                Amount = request.Amount,
+                Currency = request.Currency,
+                CardLastDigits = request.CardNumber.Substring(Math.Max(0, request.CardNumber.Length - 4)),
+                MerchantId = merchantId,
+                Status = PaymentStatus.Pending,
+                CreatedUtc = DateTime.UtcNow,
             };
             _paymentDb.Payments.Add(payment);
-            await _paymentDb.SaveChangesAsync();
+            var createTask = _paymentDb.SaveChangesAsync();
+            var merchant = await _paymentDb.Merchants.FindAsync(merchantId);
+            if (merchant == null)
+            {
+                // TODO: log merchant absence
+                return BadRequest();
+            }
 
-            return CreatedAtAction("GetPayment", new { id = payment.Id }, payment);
+            if (!merchant.Active)
+            {
+                // TODO: log inactive merchant
+                return BadRequest("This merchant is not active");
+            }
+            var bank = _banksRegistry.GetAcquirer(merchant);
+
+            var response = await bank.SubmitPayment(request);
+
+            await createTask.ContinueWith(t =>
+            {
+                payment.UpdatedUtc = DateTime.UtcNow;
+                payment.Status = response.Status;
+                payment.AcquirerId = response.AcquirerPaymentId;
+                return _paymentDb.SaveChangesAsync();
+            });
+
+            return payment;
         }
 
         private long GetMerchantId()

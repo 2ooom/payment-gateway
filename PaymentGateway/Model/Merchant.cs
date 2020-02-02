@@ -15,10 +15,16 @@ namespace PaymentGateway.Model
         [Required]
         public string Login { get; set; }
 
+        [Required]
         public string HashedPassword { get; set; }
 
+        [Required]
         public string Salt { get; set; }
 
+        [Required]
+        public bool Active { get; set; }
+
+        [Required]
         public AcquirerType AcquirerType { get; set; }
     }
 }

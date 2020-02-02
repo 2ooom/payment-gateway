@@ -25,6 +25,12 @@ namespace PaymentGateway.Services
 
         public async Task<MerchantCreationResponse> CreateMerchant(MerchantCreationRequest request)
         {
+            var existingMerchant = await _paymentDb.Merchants.FirstOrDefaultAsync(m => m.Login == request.Login);
+            if (existingMerchant != null)
+            {
+                // TODO: Differentiate response
+                return null;
+            }
             var salt = new byte[128 / 8];
             using (var rng = RandomNumberGenerator.Create())
             {
@@ -39,6 +45,7 @@ namespace PaymentGateway.Services
                 Salt = saltStr,
                 HashedPassword = GetHashedPassword(request.Password, saltStr),
                 AcquirerType = request.AcquirerType,
+                Active = true,
             };
             _paymentDb.Merchants.Add(merchant);
 

@@ -17,7 +17,7 @@ namespace PaymentGateway.Acquiring
         {
             return Task.Delay(TimeSpan.FromMilliseconds(1500)).ContinueWith(t => new AcquirerResponse
             {
-                Id = Guid.NewGuid().ToString(),
+                AcquirerPaymentId = Guid.NewGuid().ToString(),
                 MerchantId = _merchant.Id,
                 Status = PaymentStatus.Accepted,
             });
