@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -10,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using PaymentGateway.Acquiring;
 using PaymentGateway.Model;
 
+[assembly: InternalsVisibleTo("PaymentGateway.Tests")]
 namespace PaymentGateway
 {
     public class Startup
