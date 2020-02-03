@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using PaymentGateway.Acquiring;
 using PaymentGateway.Model;
+using PaymentGateway.Services;
 
 [assembly: InternalsVisibleTo("PaymentGateway.Tests")]
 namespace PaymentGateway
@@ -33,6 +34,7 @@ namespace PaymentGateway
                 => opt.UseSqlite(config.PaymentDbConnectionString));
             // Dependency Registration
             services.AddSingleton<IConfig>(config);
+            services.AddSingleton<IEncryptionService>(new EncryptionService());
             services.AddScoped<IBankRegistry, BankRegistry>();
 
 

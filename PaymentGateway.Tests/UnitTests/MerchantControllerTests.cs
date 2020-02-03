@@ -1,9 +1,7 @@
 using System;
-using System.Drawing.Printing;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using PaymentGateway.Controllers;
@@ -12,25 +10,20 @@ using PaymentGateway.Model;
 namespace PaymentGateway.Tests.UnitTests
 {
     [TestClass]
-    public class MerchantControllerTests
+    public class MerchantControllerTests : BaseControllerTests
     {
         public MerchantsController Subject;
-        public PaymentDbContext PaymentDb;
-        public Mock<IConfig> Config;
 
         [TestInitialize]
-        public void Setup()
+        public override Task Setup()
         {
-            Config = new Mock<IConfig>();
-            var dbOptions = new DbContextOptionsBuilder<PaymentDbContext>()
-                .UseInMemoryDatabase(databaseName: "PaymentDb")
-                .Options;
-
-            Config.Setup(t => t.JwtSecret)
+            base.Setup();
+            var config = new Mock<IConfig>();
+            config.Setup(t => t.JwtSecret)
                 // SHA256
                 .Returns("7FDA29706E24A6E44DB4669CF85EE6CE88C65342845AE08EBC9FEF621B73110E");
-            PaymentDb = new PaymentDbContext(dbOptions);
-            Subject = new MerchantsController(PaymentDb, Config.Object);
+            Subject = new MerchantsController(PaymentDb, config.Object, EncryptionService);
+            return Task.CompletedTask;
         }
 
         [TestMethod]
@@ -47,7 +40,7 @@ namespace PaymentGateway.Tests.UnitTests
             Assert.AreEqual(request.AcquirerType, merchant.AcquirerType);
             Assert.IsTrue(merchant.Active);
             Assert.IsNotNull(merchant.Salt);
-            var hashedPassword = MerchantsController.GetHashedPassword(request.Password, merchant.Salt);
+            var hashedPassword = EncryptionService.GetHash(request.Password, merchant.Salt);
             Assert.AreEqual(hashedPassword, merchant.HashedPassword);
         }
 
@@ -108,13 +101,6 @@ namespace PaymentGateway.Tests.UnitTests
             var token = tokenResponse.Value;
             Assert.IsNotNull(token.JwtToken);
             Assert.IsTrue(now.Add(MerchantsController.TokenValidity) <= token.Expires);
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            PaymentDb.Database.EnsureDeleted();
-            PaymentDb?.Dispose();
         }
 
         private static MerchantCreationRequest GetMerchantRequest()

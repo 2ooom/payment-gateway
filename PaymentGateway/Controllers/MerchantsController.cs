@@ -4,11 +4,11 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PaymentGateway.Model;
+using PaymentGateway.Services;
 
 namespace PaymentGateway.Controllers
 {
@@ -18,14 +18,18 @@ namespace PaymentGateway.Controllers
     {
         private readonly IPaymentDbContext _paymentDb;
         private readonly IConfig _config;
+        private readonly IEncryptionService _encryptionService;
 
-        private const int NbHashIterations = 1000;
         internal static readonly TimeSpan TokenValidity = TimeSpan.FromDays(7);
 
-        public MerchantsController(IPaymentDbContext paymentDb, IConfig config)
+        public MerchantsController(
+            IPaymentDbContext paymentDb,
+            IConfig config,
+            IEncryptionService encryptionService)
         {
             _paymentDb = paymentDb;
             _config = config;
+            _encryptionService = encryptionService;
         }
 
         [HttpPost]
@@ -36,7 +40,7 @@ namespace PaymentGateway.Controllers
             {
                 return BadRequest(new { message = "Merchant with this login already exists" });
             }
-            var salt = GenerateSalt();
+            var salt = _encryptionService.GenerateSalt();
             var merchant = new Merchant
             {
                 Name = request.Name,
@@ -44,7 +48,7 @@ namespace PaymentGateway.Controllers
                 Url = request.Url,
                 AcquirerType = request.AcquirerType,
                 Salt = salt,
-                HashedPassword = GetHashedPassword(request.Password, salt),
+                HashedPassword = _encryptionService.GetHash(request.Password, salt),
                 Active = true,
             };
             _paymentDb.Merchants.Add(merchant);
@@ -54,22 +58,11 @@ namespace PaymentGateway.Controllers
             return new MerchantCreationResponse { Id = merchant.Id };
         }
 
-        private static string GenerateSalt()
-        {
-            var salt = new byte[128 / 8];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(salt);
-            }
-
-            return Convert.ToBase64String(salt);
-        }
-
         [HttpPost("authenticate")]
         public async Task<ActionResult<AuthenticationResponse>> Authenticate([FromBody]AuthenticationRequest request)
         {
             var merchant = await _paymentDb.Merchants.SingleOrDefaultAsync(x => x.Login == request.Login);
-            if (merchant == null || GetHashedPassword(request.Password, merchant.Salt) != merchant.HashedPassword)
+            if (merchant == null || _encryptionService.GetHash(request.Password, merchant.Salt) != merchant.HashedPassword)
             {
                 return BadRequest(new { message = "Username or password is incorrect" });
             }
@@ -91,16 +84,6 @@ namespace PaymentGateway.Controllers
                 Expires = expires,
                 JwtToken = tokenHandler.WriteToken(token),
             };
-        }
-
-        internal static string GetHashedPassword(string password, string salt)
-        {
-            return Convert.ToBase64String(KeyDerivation.Pbkdf2(
-                password: password,
-                salt: Convert.FromBase64String(salt),
-                prf: KeyDerivationPrf.HMACSHA1,
-                iterationCount: NbHashIterations,
-                numBytesRequested: 256 / 8));
         }
     }
 }
