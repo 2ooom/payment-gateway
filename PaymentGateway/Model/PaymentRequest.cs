@@ -19,6 +19,9 @@ namespace PaymentGateway.Model
         public string Cvv { get; set; }
 
         [Required]
+        public string CardHolderName { get; set; }
+
+        [Required]
         public double Amount { get; set; }
 
         [Required]

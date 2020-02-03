@@ -13,16 +13,13 @@ namespace PaymentGateway.Tests.UnitTests
     public class MerchantControllerTests : BaseControllerTests
     {
         public MerchantsController Subject;
-
+        public Mock<IConfig> Config;
         [TestInitialize]
         public override Task Setup()
         {
             base.Setup();
-            var config = new Mock<IConfig>();
-            config.Setup(t => t.JwtSecret)
-                // SHA256
-                .Returns("7FDA29706E24A6E44DB4669CF85EE6CE88C65342845AE08EBC9FEF621B73110E");
-            Subject = new MerchantsController(PaymentDb, config.Object, EncryptionService);
+            Config = new Mock<IConfig>();
+            Subject = new MerchantsController(PaymentDb, Config.Object, EncryptionService);
             return Task.CompletedTask;
         }
 
@@ -93,6 +90,9 @@ namespace PaymentGateway.Tests.UnitTests
             var now = DateTime.UtcNow;
             var request = GetMerchantRequest();
             await Subject.CreateMerchant(request);
+            Config.Setup(t => t.JwtSecret)
+                // SHA256
+                .Returns("7FDA29706E24A6E44DB4669CF85EE6CE88C65342845AE08EBC9FEF621B73110E");
             var tokenResponse = await Subject.Authenticate(new AuthenticationRequest
             {
                 Login = request.Login,

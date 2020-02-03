@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PaymentGateway.Acquiring;
 using PaymentGateway.Model;
+using PaymentGateway.Services;
 
 namespace PaymentGateway.Controllers
 {
@@ -18,11 +19,16 @@ namespace PaymentGateway.Controllers
     {
         private readonly IPaymentDbContext _paymentDb;
         private readonly IBankRegistry _banksRegistry;
+        private readonly IEncryptionService _encryptionService;
 
-        public PaymentsController(IPaymentDbContext paymentDb, IBankRegistry banksRegistry)
+        public PaymentsController(
+            IPaymentDbContext paymentDb,
+            IBankRegistry banksRegistry,
+            IEncryptionService encryptionService)
         {
             _paymentDb = paymentDb;
             _banksRegistry = banksRegistry;
+            _encryptionService = encryptionService;
         }
 
         // GET: api/Payments
@@ -35,7 +41,7 @@ namespace PaymentGateway.Controllers
 
         // GET: api/Payments/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Payment>> GetPayment(long id)
+        public async Task<ActionResult<PaymentResponse>> GetPayment(string id)
         {
             var payment = await _paymentDb.Payments.FindAsync(id);
 
@@ -44,24 +50,14 @@ namespace PaymentGateway.Controllers
                 return NotFound();
             }
 
-            return payment;
+            return GetPaymentResponse(payment);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Payment>> PostPayment(PaymentRequest request)
+        public async Task<ActionResult<PaymentResponse>> PostPayment(PaymentRequest request)
         {
             var merchantId = GetMerchantId();
-            var payment = new Payment
-            {
-                Amount = request.Amount,
-                Currency = request.Currency,
-                CardLastDigits = request.CardNumber.Substring(Math.Max(0, request.CardNumber.Length - 4)),
-                MerchantId = merchantId,
-                Status = PaymentStatus.Pending,
-                CreatedUtc = DateTime.UtcNow,
-            };
-            _paymentDb.Payments.Add(payment);
-            var createTask = _paymentDb.SaveChangesAsync();
+            
             var merchant = await _paymentDb.Merchants.FindAsync(merchantId);
             if (merchant == null)
             {
@@ -77,16 +73,40 @@ namespace PaymentGateway.Controllers
             var bank = _banksRegistry.GetAcquirer(merchant);
 
             var response = await bank.SubmitPayment(request);
-
-            await createTask.ContinueWith(t =>
+            var payment = new Payment
             {
-                payment.UpdatedUtc = DateTime.UtcNow;
-                payment.Status = response.Status;
-                payment.AcquirerId = response.AcquirerPaymentId;
-                return _paymentDb.SaveChangesAsync();
-            });
+                Id = response.AcquirerPaymentId,
+                Amount = request.Amount,
+                Currency = request.Currency,
+                ExpiryMonth = request.ExpiryMonth,
+                ExpiryYear = request.ExpiryYear,
+                CardLastDigits = request.CardNumber.Substring(Math.Max(0, request.CardNumber.Length - 4)),
+                CardNumberHashed = _encryptionService.GetHash(request.CardNumber, merchant.Salt),
+                CardNumberLength = (byte)request.CardNumber.Length,
+                MerchantId = merchantId,
+                Status = response.Status,
+                CreatedUtc = DateTime.UtcNow,
+            };
+            _paymentDb.Payments.Add(payment);
+            await _paymentDb.SaveChangesAsync();
 
-            return payment;
+            return GetPaymentResponse(payment);
+        }
+
+        private static PaymentResponse GetPaymentResponse(Payment payment)
+        {
+            var maskedLen = Math.Max(0, payment.CardNumberLength - payment.CardLastDigits.Length);
+            var mask = string.Join("", Enumerable.Range(0, maskedLen).Select(x => "X"));
+            return new PaymentResponse
+            {
+                Id = payment.Id,
+                Amount = payment.Amount,
+                Currency = payment.Currency,
+                ExpiryMonth = payment.ExpiryMonth,
+                ExpiryYear = payment.ExpiryYear,
+                MaskedCardNumber = mask + payment.CardLastDigits,
+                Status = payment.Status,
+            };
         }
 
         private long GetMerchantId()
