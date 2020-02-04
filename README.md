@@ -20,5 +20,5 @@ C# client is generated at build time along with the spec and could be found in `
 For manual testing purposes and for Swagger UI could be found at `http://host/swagger`.
 
 ## Testing
-*Unit tests* using in-memory databse are located in `PaymentGateway.Tests.Unit.*`
-*Integration test* that bootstrap service along with database and could be found in `PaymentGateway.Tests.Integration.*`
+*Unit tests* using in-memory databse are located in `PaymentGateway.Tests`
+*Integration test* that bootstrap service along with database and could be found in `PaymentGateway.ITests`
