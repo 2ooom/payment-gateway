@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <ApplicationIcon />
+    <StartupObject />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PaymentGateway\PaymentGateway.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <SwaggerGenFiles Include="..\PaymentGateway\bin\$(Configuration)\netcoreapp3.0\generated\**\*.*" />
+  </ItemGroup>
+
+  <Target Name="CopyFiles" BeforeTargets="Build">
+    <Copy SourceFiles="@(SwaggerGenFiles)" DestinationFiles="@(SwaggerGenFiles->'.\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+</Project>
