@@ -1,0 +1,416 @@
+{
+  "x-generator": "NSwag v13.2.2.0 (NJsonSchema v10.1.4.0 (Newtonsoft.Json v11.0.0.0))",
+  "swagger": "2.0",
+  "info": {
+    "title": "My Title",
+    "version": "1.0.0"
+  },
+  "host": "localhost:55765",
+  "schemes": [
+    "http"
+  ],
+  "produces": [
+    "text/plain",
+    "application/json",
+    "text/json"
+  ],
+  "paths": {
+    "/api/Merchants": {
+      "post": {
+        "tags": [
+          "Merchants"
+        ],
+        "summary": "Create/register new merchant. Access to Payment HTTP API is only possible after authentication",
+        "operationId": "Merchants_CreateMerchant",
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "description": "Details about new merchant including login and password",
+            "schema": {
+              "$ref": "#/definitions/MerchantCreationRequest"
+            },
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": false,
+            "description": "In case of success new Merchant Id",
+            "schema": {
+              "$ref": "#/definitions/MerchantCreationResponse"
+            }
+          }
+        }
+      }
+    },
+    "/api/Merchants/authenticate": {
+      "post": {
+        "tags": [
+          "Merchants"
+        ],
+        "operationId": "Merchants_Authenticate",
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AuthenticationRequest"
+            },
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": false,
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/AuthenticationResponse"
+            }
+          }
+        }
+      }
+    },
+    "/api/Payments": {
+      "get": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Fetch all the all payment details including: acquiring bank id, amount, currency, payment status,\nmasked card number and expiry.",
+        "operationId": "Payments_GetPayments",
+        "responses": {
+          "200": {
+            "x-nullable": false,
+            "description": "List of payment details including: amount, currency, payment status, masked card number and expiry\nPayment Status meaning:\n  Pending = 0\n  Accepted = 1\n  Refused = 2",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Payment"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Submit new payment",
+        "operationId": "Payments_PostPayment",
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "description": "Payment full details including card number and details (expiry, cvv, cardholder name)",
+            "schema": {
+              "$ref": "#/definitions/PaymentRequest"
+            },
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": false,
+            "description": "Payment details including: acquiring bank id, amount, currency, payment status,\nmasked card number and expiry.\nPayment Status meaning:\n  Pending = 0\n  Accepted = 1\n  Refused = 2",
+            "schema": {
+              "$ref": "#/definitions/PaymentResponse"
+            }
+          }
+        }
+      }
+    },
+    "/api/Payments/{id}": {
+      "get": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Fetch specific payment submitted by current merchant (merchantId is taken from JWT token)",
+        "operationId": "Payments_GetPayment",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Payment Id",
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": false,
+            "description": "Payment details including: acquiring bank id, amount, currency, payment status,\nmasked card number and expiry.\nPayment Status meaning:\n  Pending = 0\n  Accepted = 1\n  Refused = 2",
+            "schema": {
+              "$ref": "#/definitions/PaymentResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "MerchantCreationResponse": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "MerchantCreationRequest": {
+      "type": "object",
+      "required": [
+        "name",
+        "login",
+        "password",
+        "acquirerType"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string"
+        },
+        "login": {
+          "type": "string",
+          "minLength": 1
+        },
+        "password": {
+          "type": "string",
+          "minLength": 1
+        },
+        "acquirerType": {
+          "$ref": "#/definitions/AcquirerType"
+        }
+      }
+    },
+    "AcquirerType": {
+      "type": "integer",
+      "description": "",
+      "x-enumNames": [
+        "Visa",
+        "MasterCard",
+        "AmericanExpress"
+      ],
+      "enum": [
+        0,
+        1,
+        2
+      ]
+    },
+    "AuthenticationResponse": {
+      "type": "object",
+      "required": [
+        "expires"
+      ],
+      "properties": {
+        "jwtToken": {
+          "type": "string"
+        },
+        "expires": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "AuthenticationRequest": {
+      "type": "object",
+      "required": [
+        "login",
+        "password"
+      ],
+      "properties": {
+        "login": {
+          "type": "string",
+          "minLength": 1
+        },
+        "password": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "Payment": {
+      "type": "object",
+      "required": [
+        "amount",
+        "currency",
+        "expiryMonth",
+        "expiryYear",
+        "cardLastDigits",
+        "cardNumberHashed",
+        "cardNumberLength",
+        "status",
+        "createdUtc",
+        "merchantId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "currency": {
+          "type": "string",
+          "maxLength": 3,
+          "minLength": 1
+        },
+        "expiryMonth": {
+          "type": "integer",
+          "format": "byte",
+          "maximum": 12.0,
+          "minimum": 1.0
+        },
+        "expiryYear": {
+          "type": "integer",
+          "maximum": 2147483647.0,
+          "minimum": 2020.0
+        },
+        "cardLastDigits": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cardNumberHashed": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cardNumberLength": {
+          "type": "integer",
+          "format": "byte"
+        },
+        "status": {
+          "$ref": "#/definitions/PaymentStatus"
+        },
+        "createdUtc": {
+          "type": "string",
+          "format": "date-time",
+          "minLength": 1
+        },
+        "merchantId": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "PaymentStatus": {
+      "type": "integer",
+      "description": "",
+      "x-enumNames": [
+        "Pending",
+        "Accepted",
+        "Refused"
+      ],
+      "enum": [
+        0,
+        1,
+        2
+      ]
+    },
+    "PaymentResponse": {
+      "type": "object",
+      "required": [
+        "amount",
+        "expiryMonth",
+        "expiryYear",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "maskedCardNumber": {
+          "type": "string"
+        },
+        "expiryMonth": {
+          "type": "integer",
+          "format": "byte"
+        },
+        "expiryYear": {
+          "type": "integer"
+        },
+        "status": {
+          "$ref": "#/definitions/PaymentStatus"
+        }
+      }
+    },
+    "PaymentRequest": {
+      "type": "object",
+      "required": [
+        "cardNumber",
+        "expiryMonth",
+        "expiryYear",
+        "cvv",
+        "cardHolderName",
+        "amount",
+        "currency"
+      ],
+      "properties": {
+        "cardNumber": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expiryMonth": {
+          "type": "integer",
+          "format": "byte",
+          "maximum": 12.0,
+          "minimum": 1.0
+        },
+        "expiryYear": {
+          "type": "integer",
+          "maximum": 2147483647.0,
+          "minimum": 2020.0
+        },
+        "cvv": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cardHolderName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "currency": {
+          "type": "string",
+          "maxLength": 3,
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
