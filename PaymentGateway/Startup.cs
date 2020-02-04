@@ -30,6 +30,7 @@ namespace PaymentGateway
             var appSettings = Configuration.GetSection("AppSettings");
             var config = new Config(appSettings);
             services.AddControllers();
+            services.AddSwaggerDocument();
             services.AddDbContext<IPaymentDbContext, PaymentDbContext>(opt
                 => opt.UseSqlite(config.PaymentDbConnectionString));
             // Dependency Registration
@@ -71,6 +72,10 @@ namespace PaymentGateway
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            // Swagger
+            app.UseOpenApi();
+            app.UseSwaggerUi3();
 
             app.UseEndpoints(endpoints =>
             {
