@@ -10,7 +10,7 @@ using PaymentGateway.Acquiring;
 using PaymentGateway.Controllers;
 using PaymentGateway.Model;
 
-namespace PaymentGateway.Tests.UnitTests
+namespace PaymentGateway.Tests
 {
     [TestClass]
     public class PaymentsControllerTests : BaseControllerTests

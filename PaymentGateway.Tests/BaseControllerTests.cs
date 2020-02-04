@@ -1,11 +1,10 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using PaymentGateway.Model;
 using PaymentGateway.Services;
 
-namespace PaymentGateway.Tests.UnitTests
+namespace PaymentGateway.Tests
 {
     public class BaseControllerTests
     {

@@ -7,7 +7,7 @@ using Moq;
 using PaymentGateway.Controllers;
 using PaymentGateway.Model;
 
-namespace PaymentGateway.Tests.UnitTests
+namespace PaymentGateway.Tests
 {
     [TestClass]
     public class MerchantControllerTests : BaseControllerTests
