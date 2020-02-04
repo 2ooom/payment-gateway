@@ -12,6 +12,9 @@ using PaymentGateway.Services;
 
 namespace PaymentGateway.Controllers
 {
+    /// <summary>
+    /// End-point for payment submission/retrieval
+    /// </summary>
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
@@ -31,6 +34,17 @@ namespace PaymentGateway.Controllers
             _encryptionService = encryptionService;
         }
 
+        /// <summary>
+        /// Fetch all the all payment details including: acquiring bank id, amount, currency, payment status,
+        /// masked card number and expiry.
+        /// </summary>
+        /// <returns>
+        /// List of payment details including: amount, currency, payment status, masked card number and expiry
+        /// Payment Status meaning:
+        ///   Pending = 0
+        ///   Accepted = 1
+        ///   Refused = 2
+        /// </returns>
         // GET: api/Payments
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Payment>>> GetPayments()
@@ -39,6 +53,18 @@ namespace PaymentGateway.Controllers
             return await _paymentDb.Payments.Where(p => p.MerchantId == merchantId).ToListAsync();
         }
 
+        /// <summary>
+        /// Fetch specific payment submitted by current merchant (merchantId is taken from JWT token)
+        /// </summary>
+        /// <param name="id">Payment Id</param>
+        /// <returns>
+        /// Payment details including: acquiring bank id, amount, currency, payment status,
+        /// masked card number and expiry.
+        /// Payment Status meaning:
+        ///   Pending = 0
+        ///   Accepted = 1
+        ///   Refused = 2
+        /// </returns>
         // GET: api/Payments/5
         [HttpGet("{id}")]
         public async Task<ActionResult<PaymentResponse>> GetPayment(string id)
@@ -53,6 +79,18 @@ namespace PaymentGateway.Controllers
             return GetPaymentResponse(payment);
         }
 
+        /// <summary>
+        /// Submit new payment
+        /// </summary>
+        /// <param name="request">Payment full details including card number and details (expiry, cvv, cardholder name)</param>
+        /// <returns>
+        /// Payment details including: acquiring bank id, amount, currency, payment status,
+        /// masked card number and expiry.
+        /// Payment Status meaning:
+        ///   Pending = 0
+        ///   Accepted = 1
+        ///   Refused = 2
+        /// </returns>
         [HttpPost]
         public async Task<ActionResult<PaymentResponse>> PostPayment(PaymentRequest request)
         {
