@@ -195,7 +195,7 @@ namespace PaymentGateway.Tests
             };
         }
 
-        private static PaymentRequest GetPaymentRequest()
+        public static PaymentRequest GetPaymentRequest()
         {
             return new PaymentRequest
             {

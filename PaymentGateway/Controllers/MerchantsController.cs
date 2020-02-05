@@ -71,7 +71,7 @@ namespace PaymentGateway.Controllers
         /// <param name="request">Merchant's login and password</param>
         /// <returns>
         ///   1/ JWT Bearer token to be provided in Authorization HTTP header like so:
-        ///        Authorization: Bearer <JwtToken>
+        ///        Authorization: Bearer {JwtToken}
         ///   2/ Expiry DateTime. After that point token will not be valid and client has to repeat
         ///      authentication process. By Default valid for 7 days.
         /// </returns>

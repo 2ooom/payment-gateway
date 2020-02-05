@@ -103,7 +103,7 @@ namespace PaymentGateway.Tests
             Assert.IsTrue(now.Add(MerchantsController.TokenValidity) <= token.Expires);
         }
 
-        private static MerchantCreationRequest GetMerchantRequest()
+        public static MerchantCreationRequest GetMerchantRequest()
         {
             return new MerchantCreationRequest
             {
