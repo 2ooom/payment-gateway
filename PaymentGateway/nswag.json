@@ -45,10 +45,10 @@
       "createWebHostBuilderMethod": null,
       "startupType": null,
       "allowNullableBodyParameters": true,
-      "output": "bin/$(Configuration)/netcoreapp3.0/generated/swagger.json",
+      "output": "$(OutDir)/generated/swagger.json",
       "outputType": "OpenApi3",
       "assemblyPaths": [
-        "bin/$(Configuration)/netcoreapp3.0/PaymentGateway.dll"
+        "$(OutDir)/PaymentGateway.dll"
       ],
       "assemblyConfig": null,
       "referencePaths": [],
@@ -135,7 +135,7 @@
       "enumNameGeneratorType": null,
       "serviceHost": null,
       "serviceSchemes": null,
-      "output": "bin/$(Configuration)/netcoreapp3.0/generated/PaymentGatewayClient.cs"
+      "output": "$(OutDir)/generated/PaymentGatewayClient.cs"
     }
   }
 }
