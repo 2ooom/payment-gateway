@@ -5,6 +5,72 @@
  * `PaymentGateway.Model` - defines common DTOs used both by HTTP API (`PaymentGateway`) and by generated clients (`PaymentGateway.Client`).
  * `PaymentGateway.Client` - assembly containing generated C# clients that are copied before build from `PaymentGateway\bin\$(Configuratoin)\netcoreapp3.0\generated\` and are extended through partial classes with this project (Authorization which is not supported by `NSwag`).
 
+## Setup
+`PaymentGateway` could be run and built with [.NETCore SDK 3.0](https://dotnet.microsoft.com/download/dotnet-core/3.0). Docker image along with build scripts is avaialble for running and testing both in Linux and Windows environment.
+
+On Windows:
+```
+  # build for release, run integration/unit tests
+  $ build-service-docker.cmd
+  
+  # run on given port (port 5007 by default)
+  $ run-service-docker.cmd
+```
+
+On Linux:
+```
+  # build for release, run integration/unit tests
+  $ ./build-service-docker.sh
+  
+  # run on given port (port 5007 by default)
+  $ run-service-docker.sh
+```
+
+With Docker-cli:
+```
+  # build for release, run integration/unit tests
+  $ docker build --pull -t payment-gateway-dev -f ./PaymentGateway/Dockerfile .
+  
+  # run on given port (port 5007 by default)
+  $ docker run -p 5007:80 -t payment-gateway-dev:latest
+```
+## Data access layer
+[Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/) is used for DAL. Database schema looks like this:
+
+```sql
+  CREATE TABLE [Merchants] (
+    [Id] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
+  , [Name] text NOT NULL
+  , [Url] text NULL
+  , [Login] text NOT NULL
+  , [HashedPassword] text NOT NULL
+  , [Salt] text NOT NULL
+  , [Active] bigint NOT NULL
+  , [AcquirerType] bigint NOT NULL
+  );
+
+  CREATE TABLE [Payments] (
+    [Id] text NOT NULL
+  , [Amount] real NOT NULL
+  , [Currency] text NOT NULL
+  , [ExpiryMonth] bigint NOT NULL
+  , [ExpiryYear] bigint NOT NULL
+  , [CardLastDigits] text NOT NULL
+  , [CardNumberHashed] text NOT NULL
+  , [CardNumberLength] bigint NOT NULL
+  , [Status] bigint NOT NULL
+  , [CreatedUtc] text NOT NULL
+  , [MerchantId] bigint NOT NULL
+  , CONSTRAINT [sqlite_autoindex_Payments_1] PRIMARY KEY ([Id])
+  );
+```
+
+This scema can be automatically aplied via [dotnet-ef](https://docs.microsoft.com/en-us/ef/core/miscellaneous/cli/index) command:
+```
+  $ dotnet ef database update
+```
+
+
 ## Asusmptions
  1. Storing card details is not allowed. For identifications purposes only 4 last digits of the card are stored. Together with other payment details (Id, Timestamp, Amount) this should be enogh to uniquely identify transactions.
  2. Merchants use single account per acquiering bank. If several banks are needed a new Merchant could be created.
