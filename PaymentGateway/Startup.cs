@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -8,6 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using NSwag;
+using NSwag.Generation.Processors.Security;
 using PaymentGateway.Acquiring;
 using PaymentGateway.Model;
 using PaymentGateway.Services;
@@ -30,7 +33,19 @@ namespace PaymentGateway
             var appSettings = Configuration.GetSection("AppSettings");
             var config = new Config(appSettings);
             services.AddControllers();
-            services.AddSwaggerDocument();
+            services.AddOpenApiDocument(document =>
+            {
+                document.Title = "OpenAPI 3";
+                document.AddSecurity("JWT", Enumerable.Empty<string>(), new OpenApiSecurityScheme
+                {
+                    Type = OpenApiSecuritySchemeType.ApiKey,
+                    Name = "Authorization",
+                    In = OpenApiSecurityApiKeyLocation.Header,
+                    Description = "Type into the textbox: Bearer {your JWT token}."
+                });
+
+                document.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor("JWT"));
+            });
             services.AddDbContext<IPaymentDbContext, PaymentDbContext>(opt
                 => opt.UseSqlite(config.PaymentDbConnectionString));
             // Dependency Registration

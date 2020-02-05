@@ -46,7 +46,7 @@
       "startupType": null,
       "allowNullableBodyParameters": true,
       "output": "bin/$(Configuration)/netcoreapp3.0/generated/swagger.json",
-      "outputType": "Swagger2",
+      "outputType": "OpenApi3",
       "assemblyPaths": [
         "bin/$(Configuration)/netcoreapp3.0/PaymentGateway.dll"
       ],
