@@ -97,10 +97,13 @@ namespace PaymentGateway
                 endpoints.MapControllers();
             });
 
-            // Ensure Database is up to date on the startup
-            using var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var context = scope.ServiceProvider.GetService<IPaymentDbContext>();
-            context.Database.Migrate();
+            if (env.IsProduction())
+            {
+                // Ensure Database is up to date on the startup
+                using var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+                using var context = scope.ServiceProvider.GetService<IPaymentDbContext>();
+                context.Database.Migrate();
+            }
         }
     }
 }
