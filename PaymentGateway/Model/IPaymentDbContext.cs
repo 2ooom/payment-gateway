@@ -1,11 +1,12 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace PaymentGateway.Model
 {
-    public interface IPaymentDbContext
+    public interface IPaymentDbContext: IDisposable
     {
         DbSet<Payment> Payments { get; set; }
         DbSet<Merchant> Merchants { get; set; }
