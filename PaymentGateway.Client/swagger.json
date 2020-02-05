@@ -47,82 +47,24 @@
         ],
         "summary": "Submit new payment",
         "operationId": "Payments_PostPayment",
-        "parameters": [
-          {
-            "name": "CardNumber",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "nullable": true
+        "requestBody": {
+          "x-name": "request",
+          "description": "Payment full details including card number and details (expiry, cvv, cardholder name)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "nullable": true,
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/PaymentRequest"
+                  }
+                ]
+              }
+            }
           },
-          {
-            "name": "ExpiryMonth",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "byte",
-              "maximum": 12.0,
-              "minimum": 1.0
-            },
-            "nullable": false
-          },
-          {
-            "name": "ExpiryYear",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "maximum": 2147483647.0,
-              "minimum": 2020.0
-            },
-            "nullable": false
-          },
-          {
-            "name": "Cvv",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "nullable": true
-          },
-          {
-            "name": "CardHolderName",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "nullable": true
-          },
-          {
-            "name": "Amount",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "number",
-              "format": "double"
-            },
-            "nullable": false
-          },
-          {
-            "name": "Currency",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "maxLength": 3,
-              "nullable": true
-            },
-            "nullable": true
-          }
-        ],
+          "required": true,
+          "x-position": 1
+        },
         "responses": {
           "200": {
             "description": "Payment details including: acquiring bank id, amount, currency, payment status,\nmasked card number and expiry.\nPayment Status meaning:\n  Pending = 0\n  Accepted = 1\n  Refused = 2",
@@ -230,9 +172,11 @@
         "tags": [
           "Merchants"
         ],
+        "summary": "Authenticates merchant using login/password by providing JWT self-contained token",
         "operationId": "Merchants_Authenticate",
         "requestBody": {
           "x-name": "request",
+          "description": "Merchant's login and password",
           "content": {
             "application/json": {
               "schema": {
@@ -250,7 +194,7 @@
         },
         "responses": {
           "200": {
-            "description": "",
+            "description": "1/ JWT Bearer token to be provided in Authorization HTTP header like so:\n     Authorization: Bearer {JwtToken}\n2/ Expiry DateTime. After that point token will not be valid and client has to repeat\n   authentication process. By Default valid for 7 days.\n            ",
             "content": {
               "application/json": {
                 "schema": {
@@ -379,6 +323,53 @@
           },
           "Status": {
             "$ref": "#/components/schemas/PaymentStatus"
+          }
+        }
+      },
+      "PaymentRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "CardNumber",
+          "ExpiryMonth",
+          "ExpiryYear",
+          "Cvv",
+          "CardHolderName",
+          "Amount",
+          "Currency"
+        ],
+        "properties": {
+          "CardNumber": {
+            "type": "string",
+            "minLength": 1
+          },
+          "ExpiryMonth": {
+            "type": "integer",
+            "format": "byte",
+            "maximum": 12.0,
+            "minimum": 1.0
+          },
+          "ExpiryYear": {
+            "type": "integer",
+            "maximum": 2147483647.0,
+            "minimum": 2020.0
+          },
+          "Cvv": {
+            "type": "string",
+            "minLength": 1
+          },
+          "CardHolderName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "Amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "Currency": {
+            "type": "string",
+            "maxLength": 3,
+            "minLength": 1
           }
         }
       },

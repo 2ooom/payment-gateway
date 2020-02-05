@@ -130,6 +130,7 @@ namespace PaymentGateway.Client
         }
     
         /// <summary>Submit new payment</summary>
+        /// <param name="request">Payment full details including card number and details (expiry, cvv, cardholder name)</param>
         /// <returns>Payment details including: acquiring bank id, amount, currency, payment status,
         /// masked card number and expiry.
         /// Payment Status meaning:
@@ -137,13 +138,14 @@ namespace PaymentGateway.Client
         ///   Accepted = 1
         ///   Refused = 2</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public System.Threading.Tasks.Task<PaymentResponse> PostPaymentAsync(string cardNumber, byte expiryMonth, int expiryYear, string cvv, string cardHolderName, double amount, string currency)
+        public System.Threading.Tasks.Task<PaymentResponse> PostPaymentAsync(PaymentRequest request)
         {
-            return PostPaymentAsync(cardNumber, expiryMonth, expiryYear, cvv, cardHolderName, amount, currency, System.Threading.CancellationToken.None);
+            return PostPaymentAsync(request, System.Threading.CancellationToken.None);
         }
     
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>Submit new payment</summary>
+        /// <param name="request">Payment full details including card number and details (expiry, cvv, cardholder name)</param>
         /// <returns>Payment details including: acquiring bank id, amount, currency, payment status,
         /// masked card number and expiry.
         /// Payment Status meaning:
@@ -151,34 +153,19 @@ namespace PaymentGateway.Client
         ///   Accepted = 1
         ///   Refused = 2</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<PaymentResponse> PostPaymentAsync(string cardNumber, byte expiryMonth, int expiryYear, string cvv, string cardHolderName, double amount, string currency, System.Threading.CancellationToken cancellationToken)
+        public async System.Threading.Tasks.Task<PaymentResponse> PostPaymentAsync(PaymentRequest request, System.Threading.CancellationToken cancellationToken)
         {
-            if (expiryMonth == null)
-                throw new System.ArgumentNullException("expiryMonth");
-    
-            if (expiryYear == null)
-                throw new System.ArgumentNullException("expiryYear");
-    
-            if (amount == null)
-                throw new System.ArgumentNullException("amount");
-    
             var urlBuilder_ = new System.Text.StringBuilder();
-            urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/api/Payments?");
-            urlBuilder_.Append(System.Uri.EscapeDataString("CardNumber") + "=").Append(System.Uri.EscapeDataString(cardNumber != null ? ConvertToString(cardNumber, System.Globalization.CultureInfo.InvariantCulture) : "")).Append("&");
-            urlBuilder_.Append(System.Uri.EscapeDataString("ExpiryMonth") + "=").Append(System.Uri.EscapeDataString(ConvertToString(expiryMonth, System.Globalization.CultureInfo.InvariantCulture))).Append("&");
-            urlBuilder_.Append(System.Uri.EscapeDataString("ExpiryYear") + "=").Append(System.Uri.EscapeDataString(ConvertToString(expiryYear, System.Globalization.CultureInfo.InvariantCulture))).Append("&");
-            urlBuilder_.Append(System.Uri.EscapeDataString("Cvv") + "=").Append(System.Uri.EscapeDataString(cvv != null ? ConvertToString(cvv, System.Globalization.CultureInfo.InvariantCulture) : "")).Append("&");
-            urlBuilder_.Append(System.Uri.EscapeDataString("CardHolderName") + "=").Append(System.Uri.EscapeDataString(cardHolderName != null ? ConvertToString(cardHolderName, System.Globalization.CultureInfo.InvariantCulture) : "")).Append("&");
-            urlBuilder_.Append(System.Uri.EscapeDataString("Amount") + "=").Append(System.Uri.EscapeDataString(ConvertToString(amount, System.Globalization.CultureInfo.InvariantCulture))).Append("&");
-            urlBuilder_.Append(System.Uri.EscapeDataString("Currency") + "=").Append(System.Uri.EscapeDataString(currency != null ? ConvertToString(currency, System.Globalization.CultureInfo.InvariantCulture) : "")).Append("&");
-            urlBuilder_.Length--;
+            urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/api/Payments");
     
             var client_ = _httpClient;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
-                    request_.Content = new System.Net.Http.StringContent(string.Empty, System.Text.Encoding.UTF8, "application/json");
+                    var content_ = new System.Net.Http.StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(request, _settings.Value));
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
                     request_.Method = new System.Net.Http.HttpMethod("POST");
                     request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
     
@@ -509,6 +496,12 @@ namespace PaymentGateway.Client
             }
         }
     
+        /// <summary>Authenticates merchant using login/password by providing JWT self-contained token</summary>
+        /// <param name="request">Merchant's login and password</param>
+        /// <returns>1/ JWT Bearer token to be provided in Authorization HTTP header like so:
+        ///      Authorization: Bearer {JwtToken}
+        /// 2/ Expiry DateTime. After that point token will not be valid and client has to repeat
+        ///    authentication process. By Default valid for 7 days.</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public System.Threading.Tasks.Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request)
         {
@@ -516,6 +509,12 @@ namespace PaymentGateway.Client
         }
     
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>Authenticates merchant using login/password by providing JWT self-contained token</summary>
+        /// <param name="request">Merchant's login and password</param>
+        /// <returns>1/ JWT Bearer token to be provided in Authorization HTTP header like so:
+        ///      Authorization: Bearer {JwtToken}
+        /// 2/ Expiry DateTime. After that point token will not be valid and client has to repeat
+        ///    authentication process. By Default valid for 7 days.</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public async System.Threading.Tasks.Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, System.Threading.CancellationToken cancellationToken)
         {

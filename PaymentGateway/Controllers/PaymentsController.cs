@@ -92,7 +92,7 @@ namespace PaymentGateway.Controllers
         ///   Refused = 2
         /// </returns>
         [HttpPost]
-        public async Task<ActionResult<PaymentResponse>> PostPayment(PaymentRequest request)
+        public async Task<ActionResult<PaymentResponse>> PostPayment([FromBody]PaymentRequest request)
         {
             var merchantId = GetMerchantId();
             
