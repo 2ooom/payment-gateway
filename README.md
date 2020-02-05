@@ -1,7 +1,7 @@
 # PaymentGateway HTTP API
 
 ## Prject Structure
- * `PaymentGateway` - ASP.NET Core project that contains the business logic. HTTP Api definitions and documentation is within `PaymentGateway.Controllers` namespace. Apart from defining API, we automatically generate at build time (OpeinAPI)[https://www.openapis.org/] specification and C# clients using (NSwag)[https://github.com/RicoSuter/NSwag] project.
+ * `PaymentGateway` - ASP.NET Core project that contains the business logic. HTTP Api definitions and documentation is within `PaymentGateway.Controllers` namespace. Apart from defining API, we automatically generate at build time [OpeinAPI](https://www.openapis.org/) specification and C# clients using [NSwag](https://github.com/RicoSuter/NSwag) project.
  * `PaymentGateway.Model` - defines common DTOs used both by HTTP API (`PaymentGateway`) and by generated clients (`PaymentGateway.Client`).
  * `PaymentGateway.Client` - assembly containing generated C# clients that are copied before build from `PaymentGateway\bin\$(Configuratoin)\netcoreapp3.0\generated\` and are extended through partial classes with this project (Authorization which is not supported by `NSwag`).
 
