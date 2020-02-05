@@ -3,8 +3,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PaymentGateway.Client;
 using PaymentGateway.Model;
-using AcquirerType = PaymentGateway.Client.AcquirerType;
-using MerchantCreationRequest = PaymentGateway.Client.MerchantCreationRequest;
 
 namespace PaymentGateway.ITests
 {

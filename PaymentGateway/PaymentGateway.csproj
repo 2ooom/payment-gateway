@@ -32,6 +32,9 @@
     </PackageReference>
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.6.0" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PaymentGateway.Model\PaymentGateway.Model.csproj" />
+  </ItemGroup>
   <Target Name="NSwag" AfterTargets="Build">
     <Copy SourceFiles="@(ReferencePath)" DestinationFolder="$(OutDir)References" />
     <Exec Command="$(NSwagExe_Core30) run nswag.json /variables:Configuration=$(Configuration),OutDir=$(OutDir)" />

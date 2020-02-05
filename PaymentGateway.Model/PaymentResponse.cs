@@ -1,6 +1,4 @@
-﻿using PaymentGateway.Acquiring;
-
-namespace PaymentGateway.Model
+﻿namespace PaymentGateway.Model
 {
     public class PaymentResponse
     {

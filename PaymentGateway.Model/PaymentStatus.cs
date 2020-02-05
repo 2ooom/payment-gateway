@@ -1,4 +1,4 @@
-﻿namespace PaymentGateway.Acquiring
+﻿namespace PaymentGateway.Model
 {
     public enum PaymentStatus
     {

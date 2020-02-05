@@ -4,7 +4,7 @@ using System.Text;
 
 namespace PaymentGateway.Client
 {
-    public class HttpClientAuthorized
+    public partial class HttpClientAuthorized
     {
     }
 }
